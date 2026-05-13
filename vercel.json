@@ -1,10 +1,5 @@
 {
   "framework": null,
-  "functions": {
-    "api/track.js": {
-      "runtime": "nodejs20.x"
-    }
-  },
   "rewrites": [
     { "source": "/track/:id", "destination": "/api/track?id=:id" }
   ]
