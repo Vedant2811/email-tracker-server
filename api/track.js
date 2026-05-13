@@ -36,6 +36,7 @@ async function getSheet(auth, spreadsheetId) {
 
 async function logOpen(emailId) {
   const creds = JSON.parse(process.env.GOOGLE_CREDENTIALS_JSON);
+  console.log("Credentials loaded, client_email:", creds.client_email);
   const spreadsheetId = process.env.SPREADSHEET_ID;
 
   const auth = new google.auth.GoogleAuth({
@@ -94,8 +95,8 @@ module.exports = async function handler(req, res) {
   if (emailId) {
     try {
       await logOpen(emailId);
-    } catch (_) {
-      // never block the pixel on a sheet error
+    } catch (err) {
+      console.error("Sheet write failed:", err.message, err.stack);
     }
   }
 
