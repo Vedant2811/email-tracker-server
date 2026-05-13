@@ -1,4 +1,9 @@
 {
+  "functions": {
+    "api/track.py": {
+      "runtime": "python3.9"
+    }
+  },
   "rewrites": [
     { "source": "/track/:id", "destination": "/api/track?id=:id" }
   ]
