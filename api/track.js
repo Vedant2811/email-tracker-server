@@ -5,7 +5,7 @@ const TRANSPARENT_GIF = Buffer.from(
   "base64"
 );
 
-const HEADERS = ["Email ID", "Open Count", "First Opened", "Last Opened"];
+const HEADERS = ["Email ID", "Open Count", "First Opened", "Last Opened", "Email Address"];
 
 async function getSheet(auth, spreadsheetId) {
   const sheets = google.sheets({ version: "v4", auth });
@@ -34,7 +34,7 @@ async function getSheet(auth, spreadsheetId) {
   return sheets;
 }
 
-async function logOpen(emailId) {
+async function logOpen(emailId, emailAddress) {
   const creds = JSON.parse(process.env.GOOGLE_CREDENTIALS_JSON);
   console.log("Credentials loaded, client_email:", creds.client_email);
   const spreadsheetId = process.env.SPREADSHEET_ID;
@@ -46,7 +46,7 @@ async function logOpen(emailId) {
   const authClient = await auth.getClient();
   const sheets = await getSheet(authClient, spreadsheetId);
 
-  // Read column A to find existing row
+  // Read column A to find existing row by UUID
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId,
     range: "Tracking!A:A",
@@ -75,26 +75,28 @@ async function logOpen(emailId) {
         data: [
           { range: `Tracking!B${sheetRow}`, values: [[current + 1]] },
           { range: `Tracking!D${sheetRow}`, values: [[now]] },
+          { range: `Tracking!E${sheetRow}`, values: [[emailAddress]] },
         ],
       },
     });
   } else {
     await sheets.spreadsheets.values.append({
       spreadsheetId,
-      range: "Tracking!A:D",
+      range: "Tracking!A:E",
       valueInputOption: "RAW",
       insertDataOption: "INSERT_ROWS",
-      requestBody: { values: [[emailId, 1, now, now]] },
+      requestBody: { values: [[emailId, 1, now, now, emailAddress]] },
     });
   }
 }
 
 module.exports = async function handler(req, res) {
   const emailId = req.query.id;
+  const emailAddress = req.query.email || "";
 
   if (emailId) {
     try {
-      await logOpen(emailId);
+      await logOpen(emailId, emailAddress);
     } catch (err) {
       console.error("Sheet write failed:", err.message, err.stack);
     }
